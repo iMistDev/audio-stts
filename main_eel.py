@@ -58,7 +58,8 @@ def get_lists():
     
         return{
         "mics":mics,
-        "voices":voices
+        "voices":voices,
+        "config": app_config
         }
     
     except Exception as e:

@@ -1,10 +1,25 @@
 window.onload = async function() {
-    let datos = await eel.get_lists()(); 
-    
-    fillSelect("micSelect", datos.mics);
-    fillSelect("voiceSelect", datos.voices);
-    
-    js_log("--- Loaded Devices ---");
+    console.log("Loading System...");
+
+    let datos = await eel.get_lists()();
+
+    if (datos) {
+
+        fillSelect("micSelect", datos.mics);
+        fillSelect("voiceSelec", datos.voices);
+
+        if (datos.config) {
+            let volReal = datos.config.volume;
+
+            let slider = document.getElementById('volInput');
+            let label = document.getElementById('volLabel');
+
+            if (slider) slider.value = volReal;
+            if (label) label.innerText = volReal + "%";
+        }
+
+        js_log("--- System Loaded (Devices & Config) ---")
+    }
 };
 
 function fillSelect(elementId, listaItems) {
@@ -20,7 +35,7 @@ function fillSelect(elementId, listaItems) {
 }
 
 function setConfig(key, value) {
-    eel.actualizar_config(key, value);
+    eel.update_config(key, value);
 }
 
 function start() {

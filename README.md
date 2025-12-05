@@ -39,14 +39,11 @@ I'm plannig to do streams coding while I learn and start a YT Channel soon!  so,
 - ~~NASA PC~~ 
 - Install VB-CABLE (you'll need it for further config.)
     Link: https://vb-audio.com/Cable/
-- `pip install SpeechRecognition`
-- `pip install PyAudio`
-- `pip install pyttsx3`
-- `pip install eel`
+- Download Release on Releases extract it and Go setting up VC
 ### Setting up (Virtual Cable)
 - After installation Restart your PC.
 - On windows (sry linux, someday.) go to your sound settings -> App volume and preferences (located a the bottom)
-- find 'python.exe' (or 'main_eel.exe' **[If I compiled this. sry I'm lazy.]**) in the list.
+- find 'python.exe' (or 'main_eel.exe') in the list.
 - Change the **Ouput** device from "Default" to **"CABLE Input (VB-Audio Virtual Cable)"**.
 
 ### Setting up OBS / Discord Configuration

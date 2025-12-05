@@ -62,3 +62,9 @@ TODO.md
 
 .mp3
 .wav
+
+# --- PyInstaller (Compiling) ---
+
+build/
+dist/
+*.spec
