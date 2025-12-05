@@ -1,5 +1,4 @@
 import eel
-import eel.browsers
 import threading
 import vtt_module
 import tts_module
@@ -116,56 +115,16 @@ def audio_loop():
     eel.js_log("--- [SYSTEM] SHUTDOWN SYSTEM ---")
     print("--- [THREAD] Thread finished. ---")
                 
-# Deprecated / Refactorized
-""" 
-def audio_loop():
-    global active_stream
-    print("--- [THREAD] Entering Audio Loop. ---")
-    try:
-        print(f" [CHECK] Mic ID: {app_config['mic']}")
-        print(f" [CHECK] Lang: {app_config['lang']}")
-        print(f" [CHECK] Voice ID: {app_config['voice']}")
-    except Exception as e:
-        print(f"--- [THREAD ERROR] Error while reading config: {e} ---")
-        eel.js_log(f"Error config: {e}")
-        return
+import sys
+if sys.platform in ['win32', 'cygwin']:
+    browser = 'edge'
+else:
+    browser = 'chrome'
     
-    while active_stream:
-        try:
-            print("--- [THREAD] Calling vtt function... ---")
-            eel.js_log("Listening...")
-            
-            text = vtt_module.hear_function(app_config["mic"], app_config["lang"])
-            
-            if not active_stream:
-                print("--- [THREAD Stop signal detected after listening. Aborting... ---]")
-                eel.js_log("Forcibly Detained.")
-                break
-            
-            print(f"--- [THREAD] vtt state: {text} ---")
-            
-            if text:
-                eel.js_log(f"Your Microphone: {text}")
-                eel.js_log(f"Voice selected: {text}")
-                
-                print("--- [THREAD] Calling TTS... ---")
-                if active_stream:
-                    tts_module.speak(text, app_config["voice"])
-                
-                
-        except Exception as e:
-            msg_error = f"--- THREAD CRASH: {e} ---"
-            print(f" ERROR: {msg_error}")
-            eel.js_log(msg_error)
-            import traceback
-            traceback.print_exc()
-            active_stream = False
-            break
-    eel.js_log(">>>SHUTDOWN SYSTEM")
-    print("--- [THREAD] Loop finished successfully. ---") 
-"""             
-chromium_browser = r"D:\Chromium\chrome-win\chrome.exe"
+print(f"--- [SYS] Initializing in mode: {browser} ---")
 
-eel.browsers.set_path('chrome', chromium_browser)
-
-eel.start('index.html', size=(680, 980), mode='chrome')
+try:
+    eel.start('index.html', size=(680, 980), mode=browser)
+except EnvironmentError:
+    print("--- [WARN/SYS] Browser not found, using users default. ---")
+    eel.start('index.html', size=(680, 980), mode='default')
