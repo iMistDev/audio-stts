@@ -59,7 +59,7 @@ I'm plannig to do streams coding while I learn and start a YT Channel soon!  so,
 <details>
 <summary>Check Development info.</summary>
 
-### Libraries. (Development)
+### Python ver & Libraries. (Development)
 - python=3.13.4
 - Eel==0.18.2
 - SpeechRecognition==3.14.4
