@@ -37,6 +37,7 @@ I'm plannig to do streams coding while I learn and start a YT Channel soon!  so,
 
 ### Requirements. (Need testing)
 - ~~NASA PC~~ 
+- Have Edge or Chrome installed
 - Install VB-CABLE (you'll need it for further config.)
     Link: https://vb-audio.com/Cable/
 - Download Release on Releases extract it and Go setting up VC
@@ -54,3 +55,15 @@ I'm plannig to do streams coding while I learn and start a YT Channel soon!  so,
 - Just plug and play it, extract it and double click after setting up VC
 
 # ENJOY :D (In the Name of Moon) 🌙🤍
+
+<details>
+<summary>Check Development info.</summary>
+
+### Libraries. (Development)
+- python=3.13.4
+- Eel==0.18.2
+- SpeechRecognition==3.14.4
+- PyAudio==0.2.14
+- edge-tts==7.2.3
+- pygame==2.6.1
+- pyinstaller==6.17.0
