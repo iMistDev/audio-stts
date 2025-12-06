@@ -8,7 +8,24 @@ window.onload = async function() {
         fillSelect("micSelect", datos.mics);
         fillSelect("voiceSelect", datos.voices);
 
+        let langSelect = document.getElementById("langSelect");
+        langSelect.innerHTML = "";
+
+        datos.languages.forEach(langItem => {
+            let option = document.createElement("option");
+
+            option.text = langItem.name;
+            option.value = langItem.code;
+
+            langSelect.appendChild(option);
+        });
+
         if (datos.config) {
+
+            document.getElementById("micSelect").value = datos.config.mic;
+            document.getElementById("voiceSelect").value = datos.config.voice;
+            document.getElementById("langSelect").value = datos.config.lang;
+            
             let volReal = datos.config.volume;
 
             let slider = document.getElementById('volInput');

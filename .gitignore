@@ -70,3 +70,4 @@ dist/
 *.spec
 
 *.ico
+*.json

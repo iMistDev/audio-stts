@@ -2,29 +2,23 @@ import asyncio
 import edge_tts
 import io
 import pygame
-
-VOICE_MAPPING = {
-    0: "es-CL-LorenzoNeural",
-    1: "es-ES-ElviraNeural",
-    2: "es-MX-DaliaNeural",
-    3: "en-US-JennyNeural"
-}
+import utils
 
 def list_voices():
     voice_options = []
-    for i, name in VOICE_MAPPING.items():
+    for i, data in utils.TTS_VOICES.items():
         voice_options.append({
             "id": i,
-            "name": name
+            "name": data["name"]
         })
     return voice_options
 
 async def speak(text: str, voice_id: int, volume: int = 100):
-    if voice_id not in VOICE_MAPPING:
+    if voice_id not in utils.TTS_VOICES:
         print(f"Error: Voice ID {voice_id} not found. Using 0. (default)")
         voice_id = 0
         
-    VOICE = VOICE_MAPPING[voice_id]
+    VOICE = utils.TTS_VOICES[voice_id]["code"]
     
     try:
         communicate = edge_tts.Communicate(text, VOICE)

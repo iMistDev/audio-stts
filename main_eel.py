@@ -4,15 +4,46 @@ import vtt_module
 import tts_module
 import speech_recognition as sr
 import asyncio
+import utils
+import json
+import os
 
 eel.init('web')
 
-app_config = {
+CONFIG_FILE = "user_config.json"
+
+def load_config():
+    if os.path.exists(CONFIG_FILE):
+        try:
+            with open(CONFIG_FILE, 'r')as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"Error while loading config: {e}")
+    return None
+
+def save_config():
+    try:
+        with open(CONFIG_FILE, 'w') as f:
+            json.dump(app_config, f, indent=4)
+        print("--- [SYS] Saved Config. ---")
+    except Exception as e:
+        print(f"--- Error saving config: {e} ---")
+
+default_config = {
     "mic": 0,
     "lang": "es-419",
     "voice": 0,
     "volume": 50
 }
+
+saved_config = load_config()
+
+if saved_config:
+    app_config = saved_config
+    print(f"--- [SYS] Config. Loaded: {app_config} ---")
+else:
+    app_config = default_config
+    print("--- [SYS] Defatult configuration selected. ---")
 
 active_stream = False
 
@@ -29,6 +60,7 @@ def update_config(key, value):
         app_config[key] = int(value)
     else:
         app_config[key] = value
+    save_config()
 
 @eel.expose
 def start_stream():
@@ -55,10 +87,13 @@ def get_lists():
         print(" -> Searching Voices...")
         voices = tts_module.list_voices()
         print(f" -> Voices found!: {len(voices)}")
+        
+        input_langs = utils.INPUT_LANGUAGES
     
         return{
         "mics":mics,
         "voices":voices,
+        "languages": input_langs,
         "config": app_config
         }
     
