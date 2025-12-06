@@ -1,17 +1,17 @@
 window.onload = async function() {
     console.log("Loading System...");
 
-    let datos = await eel.get_lists()();
+    let data = await eel.get_lists()();
 
-    if (datos) {
+    if (data) {
 
-        fillSelect("micSelect", datos.mics);
-        fillSelect("voiceSelect", datos.voices);
+        fillSelect("micSelect", data.mics);
+        fillSelect("voiceSelect", data.voices);
 
         let langSelect = document.getElementById("langSelect");
         langSelect.innerHTML = "";
 
-        datos.languages.forEach(langItem => {
+        data.languages.forEach(langItem => {
             let option = document.createElement("option");
 
             option.text = langItem.name;
@@ -20,15 +20,15 @@ window.onload = async function() {
             langSelect.appendChild(option);
         });
 
-        if (datos.config) {
+        if (data.config) {
 
-            document.getElementById("micSelect").value = datos.config.mic;
-            document.getElementById("voiceSelect").value = datos.config.voice;
-            document.getElementById("langSelect").value = datos.config.lang;
+            document.getElementById("micSelect").value = data.config.mic;
+            document.getElementById("voiceSelect").value = data.config.voice;
+            document.getElementById("langSelect").value = data.config.lang;
             
-            let volReal = datos.config.volume;
+            let volReal = data.config.volume;
 
-            let threshReal = datos.config.sensitivity || 20;
+            let threshReal = data.config.sensitivity || 20;
 
             let sSlider = document.getElementById("sensInput");
             let sLabel = document.getElementById("sensLabel");
