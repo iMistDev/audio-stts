@@ -2,66 +2,86 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>ShhStreamer — by: iMist-Dev </title>
-    <link rel="app icon" href="app.ico" type="image/x-icon">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShhStreamer v2.0 | Made by: iMistDev</title>
+    <link rel="ShhStreamer Icon" href="app.ico" type="image/x-icon">
     <link rel="stylesheet" href="style.css">
     <script type="text/javascript" src="/eel.js"></script>
 </head>
 <body>
     <div class="container">
-        <h1>🎙️ ShhStreamer</h1>
         
-            <div class="panel">
-                <div class="control">
+        <div class="header">
+            <div>
+                <h1>Shh<span style="color:#00ff88"> Streamer</span> <small>v2.0</small></h1>
+                <div class="subtitle">AI VOICE PROXY SYSTEM</div>
+            </div>
+            <div id="status-light" title="System Status"></div>
+        </div>
+
+        <div class="panel">
+            
+            <div class="row">
+                <div class="control half">
                     <label>Microphone</label>
-                    <select id="micSelect" onchange="setConfig('mic', this.value)">
-                        <option value="0">Loading...</option>
+                    <select id="micSelect" onchange="updateConfig('mic', this.value)"></select>
+                </div>
+                <div class="control half">
+                    <label>AI Model (Whisper)</label>
+                    <select id="modelSelect" onchange="updateConfig('model_size', this.value)">
+                        <option value="tiny">Tiny (Faster)</option>
+                        <option value="base">Base (Normal)</option>
+                        <option value="small">Small (Recomended)</option>
+                        <option value="medium">Medium (Slow/Precise)</option>
                     </select>
                 </div>
-            <div class="control">
-                    <label>Language</label>
-                    <select id="langSelect" onchange="setConfig('lang', this.value)">
-                        <option value="es-419">Español (LatAm)</option>
-                        <option value="es-ES">Español (España)</option>
-                        <option value="en-US">English (USA)</option>
-                        <option value="ja-JP">Japanese (Japan)</option> </select>
-                </div>
-            <div class="control">
-                    <label>Bot Voice</label>
-                    <select id="voiceSelect" onchange="setConfig('voice', this.value)">
-                        <option value="0">Loading...</option>
-                    </select>
-                </div>
-            <div class="control">
-                <label>Volume: <span id="volLabel">100%</span></label>
-                <input type="range" id="volInput" min="0" max="100" value="100" 
-                    oninput="updateVolume(this.value)">
             </div>
-            <div class="control">
-                <label>Mic Sensitivity: <span id="sensLabel">20%</span></label>
-                <input type="range" id="sensInput" min="0" max="100" value="20" 
-                    oninput="updateSens(this.value)">
+
+            <div class="row">
+                <div class="control half">
+                    <label>Input Language</label>
+                    <select id="langSelect" onchange="updateConfig('lang', this.value)"></select>
+                </div>
+                <div class="control half">
+                    <label>Output Voice (Bot)</label>
+                    <select id="voiceSelect" onchange="updateConfig('voice', this.value)"></select>
+                </div>
             </div>
+
+            <hr class="separator">
+
+            <div class="row">
+                <div class="control half">
+                    <label>Sensitivty: <span id="sensLabel" class="highlight">20%</span></label>
+                    <input type="range" id="sensInput" min="0" max="100" value="20" oninput="uiUpdateSens(this.value)">
+                </div>
+                <div class="control half">
+                    <label>TTS Volume: <span id="volLabel" class="highlight">50%</span></label>
+                    <input type="range" id="volInput" min="0" max="100" value="50" oninput="uiUpdateVol(this.value)">
+                </div>
+            </div>
+
             <div class="control">
                 <label>Global Hotkey (Start/Stop)</label>
-                <div style="display: flex; gap: 5px;">
-                    <input type="text" id="hotkeyInput" value="f9" placeholder="ej: ctrl+alt+s">
-                    <button onclick="setHotkey()" style="width: auto; padding: 0 10px;">SET</button>
+                <div class="input-group">
+                    <input type="text" id="hotkeyInput" placeholder="Ej: F9">
+                    <button class="btn-small" onclick="saveHotkey()">SET</button>
                 </div>
             </div>
         </div>
 
-        <div id="console" class="console">
-            <p style="color: #888">--- System Ready ---</p>
+        <div id="console">
+            <div class="log-line">> System initialized...</div>
         </div>
-        <div class="button-group">
-            <button id="btnStart" onclick="start()">START STREAMING</button>
-            <button id="btnStop" onclick="stop()" disabled class="btn-stop">STOP STREAM</button>
+
+        <button id="btnStart" onclick="startSystem()">STRAT STREAMING</button>
+        <button id="btnStop" onclick="stopSystem()" disabled>STOP STREAMING</button>
+
+        <div class="footer">
+            Designed by <strong>iMistDev</strong> | Low Latency Version
         </div>
     </div>
-    <div class="footer">
-            Made with <span style="color: #ff4444;">&hearts;</span> by <strong>iMistDev</strong>
-        </div>
+
     <script src="script.js"></script>
 </body>
 </html>

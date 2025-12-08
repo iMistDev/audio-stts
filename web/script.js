@@ -1,136 +1,166 @@
+// --- VARIABLES GLOBALES ---
+let lastStatus = ""; // Para evitar spam en la consola
+
+// --- INICIALIZACIÓN ---
 window.onload = async function() {
-    console.log("Loading System...");
-
-    let data = await eel.get_lists()();
-
+    let data = await eel.get_init_data()();
+    
     if (data) {
-
-        fillSelect("micSelect", data.mics);
-        fillSelect("voiceSelect", data.voices);
-
-        let langSelect = document.getElementById("langSelect");
-        langSelect.innerHTML = "";
-
-        data.languages.forEach(langItem => {
-            let option = document.createElement("option");
-
-            option.text = langItem.name;
-            option.value = langItem.code;
-
-            langSelect.appendChild(option);
-        });
-
-        if (data.config) {
-
-            document.getElementById("micSelect").value = data.config.mic;
-            document.getElementById("voiceSelect").value = data.config.voice;
-            document.getElementById("langSelect").value = data.config.lang;
-            document.getElementById("hotkeyInput").value = data.config.hotkey || "f9"
-            
-            let volReal = data.config.volume;
-
-            let threshReal = data.config.sensitivity || 20;
-
-            let sSlider = document.getElementById("sensInput");
-            let sLabel = document.getElementById("sensLabel");
-
-            let slider = document.getElementById('volInput');
-            let label = document.getElementById('volLabel');
-
-            if (sSlider) sSlider.value = threshReal;
-            if (sLabel) sLabel.innerText = threshReal + "%";
-
-            if (slider) slider.value = volReal;
-            if (label) label.innerText = volReal + "%";
-        }
-
-        js_log("--- System Loaded (Devices & Config) ---")
+        populateSelect("micSelect", data.mics, data.config.mic);
+        populateSelect("voiceSelect", data.voices, data.config.voice);
+        populateSelect("langSelect", data.languages, data.config.lang);
+        
+        document.getElementById("sensInput").value = data.config.sensitivity;
+        document.getElementById("sensLabel").innerText = data.config.sensitivity + "%";
+        
+        document.getElementById("volInput").value = data.config.volume;
+        document.getElementById("volLabel").innerText = data.config.volume + "%";
+        
+        document.getElementById("hotkeyInput").value = data.config.hotkey;
+        document.getElementById("modelSelect").value = data.config.model_size || "small";
     }
 };
 
-function fillSelect(elementId, listaItems) {
-    let select = document.getElementById(elementId);
-    select.innerHTML = ""; 
-    
-    listaItems.forEach(item => {
+function populateSelect(id, items, selectedValue) {
+    let select = document.getElementById(id);
+    select.innerHTML = "";
+    items.forEach(item => {
         let option = document.createElement("option");
-        option.value = item.id;
-        option.text = item.name; 
+        option.value = item.id !== undefined ? item.id : item.code;
+        option.text = item.name !== undefined ? item.name : item.lang;
         select.appendChild(option);
     });
+    if (selectedValue !== undefined) select.value = selectedValue;
 }
 
-function setConfig(key, value) {
+// --- COMUNICACIÓN CON PYTHON ---
+
+function updateConfig(key, value) {
     eel.update_config(key, value);
 }
 
-function start() {
-    document.getElementById('btnStart').disabled = true;
-    document.getElementById('btnStart').innerText = "WORKING...";
-
-    document.getElementById('btnStop').disabled = false;
-    document.getElementById('btnStop').innerText = "STOP STREAM";
-    eel.start_stream();
+function uiUpdateSens(val) {
+    document.getElementById("sensLabel").innerText = val + "%";
+    updateConfig('sensitivity', val);
 }
 
-function stop() {
-    document.getElementById('btnStop').disabled = true;
-    document.getElementById('btnStop').innerText = "STOP STREAM";
-
-    eel.stop_stream();
-
-    document.getElementById('btnStart').disabled = false;
-    document.getElementById('btnStart').innerText = "STRAT STREAMING";
-
-    js_log("Stopping... (Waiting for actual phase...)");
+function uiUpdateVol(val) {
+    document.getElementById("volLabel").innerText = val + "%";
+    updateConfig('volume', val);
 }
 
-function updateVolume(val) {
-    document.getElementById('volLabel').innerText = val + "%";
-    eel.update_config('volume', val); 
-}
-
-function updateSens(val) {
-    document.getElementById('sensLabel').innerText = val + "%";
-    eel.update_config('sensitivity', val); 
-}
-
-async function setHotkey(){
+async function saveHotkey() {
     let val = document.getElementById("hotkeyInput").value;
     let success = await eel.update_hotkey(val)();
+    if(success) logToConsole("✅ Hotkey updated: " + val);
+    else logToConsole("❌ Invalid Hotkey", "log-err");
+}
 
-    if (success) {
-        js_log("[SUCCESS] Hotkey changed to: "+ val);
-    } else {
-        js_log(" [ERROR] Invalid key.");
+function startSystem() {
+    eel.start_stream(); 
+}
+
+function stopSystem() {
+    eel.stop_stream();
+}
+
+// --- FUNCIONES EXPUESTAS (Llamadas desde Python) ---
+
+eel.expose(js_log);
+function js_log(msg) {
+    logToConsole(msg);
+}
+
+eel.expose(js_set_status);
+function js_set_status(status) {
+    let light = document.getElementById('status-light');
+    let btnStart = document.getElementById('btnStart');
+    let btnStop = document.getElementById('btnStop');
+
+    // 1. Manejo Visual de la Luz
+    light.className = ''; // Reset
+
+    if (status === 'loading') {
+        light.classList.add('status-loading');
+        btnStart.disabled = true;
+        btnStart.innerText = "LOADING SYSTEM...";
+        btnStart.style.display = "inline-block";
+        btnStop.style.display = "none";
+    }
+    else if (status === 'ready') {
+        light.classList.add('status-ready');
+    }
+    else if (status === 'stopped') {
+        btnStart.disabled = false;
+        btnStart.innerText = "START STREAMING";
+        btnStart.style.display = "inline-block";
+        btnStop.style.display = "none";
+    }
+    else {
+        // Estados activos
+        btnStart.style.display = "none";
+        btnStop.style.display = "inline-block";
+        btnStop.disabled = false;
+
+        if (status === 'listening') light.classList.add('status-listening');
+        if (status === 'processing') light.classList.add('status-processing');
+        if (status === 'speaking') light.classList.add('status-speaking');
+    }
+
+    // 2. Manejo de Logs en Consola (Solo si el estado cambió)
+    if (status !== lastStatus) {
+        lastStatus = status; // Actualizamos el tracker
+
+        switch(status) {
+            case 'listening':
+                logToConsole("🎤 Listening...", "log-listen");
+                break;
+            case 'processing':
+                logToConsole("⚙️ Processing audio...", "log-process");
+                break;
+            case 'speaking':
+                logToConsole("🔊 Playing audio...", "log-speak");
+                break;
+            case 'stopped':
+                logToConsole("🛑 System Stopped", "log-err");
+                break;
+            case 'ready':
+                logToConsole("⚡ System Ready - Press Start", "log-sys");
+                break;
+            case 'loading':
+                logToConsole("⏳ Initializing models...", "log-sys");
+                break;
+        }
     }
 }
 
+// Triggers de prueba
 eel.expose(js_trigger_start);
-function js_trigger_start(){
-    document.getElementById('btnStart').disabled = true;
-    document.getElementById('btnStart').innerText = "WORKING...";
-    document.getElementById('btnStop').disabled = false;
-    document.getElementById('btnStop').innerText = "STOP STREAM";
-    js_log(">>> START HOTKEY USED");
+function js_trigger_start() {
+    js_set_status('listening');
+    logToConsole(">>> SYSTEM LIVE - MANUAL TRIGGER");
 }
 
 eel.expose(js_trigger_stop);
-function js_trigger_stop(){
-    stop();
-    js_log(">>> STOP HOTKEY USED");
+function js_trigger_stop() {
+    js_set_status('stopped');
 }
 
-eel.expose(js_log);
-function js_log(text) {
-    let box = document.getElementById('console');
-    let p = document.createElement('p');
-    p.innerText = text;
+// --- UTILIDAD DE LOG ACTUALIZADA ---
+// Ahora acepta un segundo parámetro opcional para la clase CSS
+function logToConsole(text, cssClass = "") {
+    let consoleDiv = document.getElementById("console");
+    let p = document.createElement("div");
     
-    if(text.includes("You:")) p.style.color = "#00ffff";
-    if(text.includes("Bot:")) p.style.color = "#00ff88";
-    if(text.includes("Error")) p.style.color = "red";
+    p.className = "log-line";
+    if (cssClass) {
+        p.classList.add(cssClass);
+    }
+
+    // Agregamos timestamp simple para que se vea más técnico
+    let time = new Date().toLocaleTimeString('en-US', { hour12: false, hour: "numeric", minute: "numeric", second: "numeric" });
+    p.innerText = `[${time}] ${text}`;
     
-    box.appendChild(p);
-    box.scrollTop = box.scrollHeight;
+    consoleDiv.appendChild(p);
+    consoleDiv.scrollTop = consoleDiv.scrollHeight;
 }

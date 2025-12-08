@@ -1,24 +1,32 @@
 import speech_recognition as sr
-import vtt_module
-import tts_module
+import vtt_module as vt
+import tts_module as tt
 import asyncio
 import eel
-
-def calculate_tresh(percent):
-    MIN_AUDIO = 300
-    MAX_AUDIO = 4000
-    
-    return MIN_AUDIO + (percent * (MAX_AUDIO - MIN_AUDIO) / 100)
+import keyboard as k
+import sanitizer as sa
 
 def run_engine(is_active_func, get_config_func):
-    print("--- [THREAD] Starting audio Engine... ---")
+    print("---- [AUDIO ENGINE V2.0] Starting... ---")
+    
+    eel.js_set_status("loading")
+    cfg = get_config_func()
+    model_size = cfg.get("model_size", "small")
+    
+    if not vt.init_whisper(model_size=model_size):
+        eel.js_log("--- [FATAL ERROR] Can't load the AI. ---")
+        eel.js_set_status("stopped")
+        eel.js_trigger_stop()
+        return
     
     r = sr.Recognizer()
-    r.pause_threshold = 0.6
-    r.non_speaking_duration = 0.4
     r.dynamic_energy_threshold = False
+    r.pause_threshold = 0.6
+    r.non_speaking_duration = 0.2
+    r.phrase_threshold = 0.3
     
-    cfg = get_config_func()
+    eel.js_set_status("ready")
+    eel.js_trigger_start()
     
     try:
         mic_id = cfg["mic"]
@@ -26,45 +34,45 @@ def run_engine(is_active_func, get_config_func):
         
         with sr.Microphone(device_index=device) as source:
             
-            eel.js_log("--- [SYS] Sistem Ready. ---")
-            eel.js_log("--- [SYS] Remember to check your Mic Sensitivity ---")
-            eel.js_log("--- [SYS] Now start Speaking... ---")
+            eel.js_log(f"--- [SYSTEM ALIVE] Mode: {model_size.upper()} ---")
             
             while is_active_func():
+                cfg = get_config_func()
+                
+                sens = cfg.get("sensitivity", 20)
+                r.energy_threshold = 300 + (sens * 37)
+                
                 try:
-                    cfg = get_config_func()
+                    #Pending some adjustments on the third argument
+                    audio = r.listen(source, timeout=1, phrase_time_limit=None)
+                except sr.WaitTimeoutError:
+                    continue
+                
+                if not is_active_func(): break
+                
+                eel.js_set_status("processing")
+                
+                text_raw = vt.transcript(audio, prompt=sa.VOCABULARY)
+                
+                if text_raw:
                     
-                    user_percent = cfg.get("sensitivity", 20)
-                    real_threshold = calculate_tresh(user_percent)
+                    text = sa.sanitize_text(text_raw)
                     
-                    r.energy_threshold = real_threshold
-                    
-                    try:
-                        audio = r.listen(source, timeout=1, phrase_time_limit=8)
-                    except sr.WaitTimeoutError:
+                    if len(text) < 3 and text.lower() not in sa.VALID_SHORT_WORDS:
+                        eel.js_set_status("listening")
                         continue
-                
-                    if not is_active_func():
-                        print("--- [THREAD] Stop detected after listening. ---")
-                        break
-                 
-                    eel.js_log("--- [SYSTEM] Processing... ---")
-                
-                    text = vtt_module.audio_processing(r, audio, cfg["lang"])
-                
-                    if text:
-                        eel.js_log(f" >Your Microphone: {text}")
-                        if is_active_func():
-                            eel.js_log(f" >Your voice: {text}")
-                            asyncio.run(tts_module.speak(text, cfg["voice"], cfg["volume"]))
-                            eel.js_log("Listening...")
-                except Exception as e:
-                    print(f"Error on Engine Loop: {e}")
+                    
+                    eel.js_log(f">>> Your Microphone: {text}")
+                    
                     if is_active_func():
-                        eel.js_log(f"Error: {e}")
+                        eel.js_set_status("Speaking")
+                        asyncio.run(tt.speak(text, cfg["voice"], cfg["volume"]))
+                
+                eel.js_set_status("listening")
     except Exception as e:
-        eel.js_log(f" --- [ERROR] Critical error while opening mic: {e}")
-        print(f"--- [SYSTEM] CRITICAL ERROR: {e} ---")
+        eel.js_log(f"--- [CRASH ERROR]: {e} ---")
+        print(f"--- [CRASH ERROR]: {e} ---")
         
-    eel.js_log("--- [SYSTEM] SHUTDOWN SYSTEM ---")
-    print("--- [THREAD] Thread finished. ---")
+    eel.js_set_status("stopped")
+    eel.js_trigger_stop()
+    print("--- [AUDIO ENGINE V2.0] Shutdown ---")

@@ -1,0 +1,9 @@
+{
+    "mic": 1,
+    "voice": 4,
+    "lang": "en-US",
+    "volume": 50,
+    "sensitivity": 0,
+    "hotkey": "ctrl+.",
+    "model_size": "base"
+}

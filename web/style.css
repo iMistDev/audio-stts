@@ -1,56 +1,152 @@
-body {
-    background: #111;
-    color: #eee;
-    font-family: sans-serif;
-    display: flex;
-    justify-content: center;
-    margin-top: 20px;
+:root {
+    --bg-color: #0d0d12;
+    --panel-bg: #16161e;
+    --text-main: #e0e0e0;
+    --text-dim: #888;
+    --accent: #00ff88;      /* Verde Hacker */
+    --accent-dim: #00cc6a;
+    --danger: #ff4444;
+    --warn: #ffaa00;        /* Amarillo Carga */
+    --proc: #00ccff;        /* Azul Proceso */
+    --speak: #ff0055;       /* Rosa Hablando */
 }
-.container { width: 90%; max-width: 400px; }
-h1 { text-align: center; color: #00ff88; }
-.panel { background: #222; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
-.control { display: flex; justify-content: space-between; margin-bottom: 10px; }
-input, select { background: #333; color: white; border: 1px solid #555; padding: 5px; width: 60%; }
-.console { 
-    background: black; height: 300px; overflow-y: auto; 
-    border: 1px solid #333; padding: 10px; font-family: monospace; 
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    font-family: 'Segoe UI', sans-serif;
+    margin: 0;
+    padding: 20px;
+    user-select: none;
+    overflow: hidden;
+}
+
+/* --- LAYOUT --- */
+.container {
+    max-width: 650px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    height: 95vh;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid var(--accent);
+    padding-bottom: 10px;
     margin-bottom: 15px;
 }
 
-.button-group{
-    display: flex;
-    gap: 10px;
-}
-button {
-    flex: 1;
-    width: 100%; padding: 15px; background: #00ff88; color: black;
-    border: none; font-weight: bold; cursor: pointer; font-size: 1.1em;
-}
-button:disabled { background: #555; }
+h1 { margin: 0; font-size: 1.8rem; letter-spacing: 2px; }
+.subtitle { font-size: 0.7rem; color: var(--text-dim); letter-spacing: 4px; margin-top: 2px; }
 
-.btn-stop{
-    background: linear-gradient(45deg, #ff416c, #ff4b2b);
-}
-
-.btn-stop:disabled{
-    background: #444;
+/* --- LUCES DE ESTADO --- */
+#status-light {
+    width: 20px;
+    height: 20px;
+    background-color: #333;
+    border-radius: 50%;
+    box-shadow: 0 0 5px #000;
+    transition: all 0.2s ease;
+    border: 2px solid #222;
 }
 
-.footer {
-    position: fixed;        
-    bottom: 15px;           
-    left: 0;                
-    width: 100%;            
-    
-    text-align: center;     
-    font-size: 0.8rem;
-    color: #666;
-    font-family: sans-serif;
-    pointer-events: none;   
+/* Clases dinámicas JS */
+.status-loading { background-color: var(--warn) !important; box-shadow: 0 0 15px var(--warn) !important; }
+.status-ready { background-color: #fff !important; box-shadow: 0 0 10px #fff !important; }
+.status-listening { background-color: var(--accent) !important; box-shadow: 0 0 15px var(--accent) !important; }
+.status-processing { background-color: var(--proc) !important; box-shadow: 0 0 15px var(--proc) !important; }
+.status-speaking { background-color: var(--speak) !important; box-shadow: 0 0 20px var(--speak) !important; }
+
+/* --- CONTROLES --- */
+.panel {
+    background: var(--panel-bg);
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #333;
+    margin-bottom: 10px;
 }
 
-.footer strong {
-    color: #00ff88;
-    pointer-events: auto;   
+.row { display: flex; gap: 15px; margin-bottom: 10px; }
+.half { flex: 1; }
+.control { margin-bottom: 10px; }
+
+label { display: block; font-size: 0.85rem; color: var(--text-dim); margin-bottom: 5px; }
+.highlight { color: var(--accent); font-weight: bold; }
+
+select, input[type="text"] {
+    width: 100%;
+    padding: 8px;
+    background: #0a0a0f;
+    border: 1px solid #444;
+    color: #fff;
+    border-radius: 4px;
+    outline: none;
+    font-size: 0.9rem;
+}
+select:focus, input:focus { border-color: var(--accent); }
+
+.separator { border: 0; border-top: 1px solid #333; margin: 15px 0; }
+
+input[type=range] { width: 100%; accent-color: var(--accent); cursor: pointer; }
+
+/* Botón pequeño para Hotkey */
+.input-group { display: flex; gap: 5px; }
+.btn-small {
+    width: auto; padding: 0 15px;
+    background: #333; color: #fff;
+    border: none; border-radius: 4px; cursor: pointer;
+    font-weight: bold;
+}
+.btn-small:hover { background: var(--accent); color: #000; }
+
+/* --- CONSOLA --- */
+#console {
+    flex-grow: 1;
+    background: #000;
+    border: 1px solid #333;
+    padding: 10px;
+    border-radius: 4px;
+    font-family: 'Consolas', monospace;
+    font-size: 0.85rem;
+    color: #aaa;
+    overflow-y: auto;
+    margin-bottom: 10px;
+}
+.log-line { margin-bottom: 2px; border-bottom: 1px solid #111; padding-bottom: 2px; }
+
+/* --- LOG STYLES (NUEVO) --- */
+.log-listen { color: var(--accent); font-weight: bold; text-shadow: 0 0 2px var(--accent-dim); }
+.log-process { color: var(--proc); font-style: italic; }
+.log-speak { color: var(--speak); font-weight: bold; }
+.log-sys { color: var(--warn); }
+.log-err { color: var(--danger); }
+
+/* --- BOTONES GRANDES --- */
+button#btnStart, button#btnStop {
+    width: 100%;
+    padding: 15px;
+    font-size: 1.1rem;
+    font-weight: 800;
+    border: none;
+    border-radius: 4px;
     cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
+
+#btnStart { background: var(--accent); color: #000; }
+#btnStart:hover { background: var(--accent-dim); box-shadow: 0 0 20px rgba(0,255,136,0.3); }
+#btnStart:disabled { background: #333; color: #666; cursor: wait; }
+
+#btnStop { background: var(--danger); color: #fff; display: none; }
+#btnStop:hover { background: #cc0000; box-shadow: 0 0 20px rgba(255,68,68,0.3); }
+
+.footer { text-align: center; font-size: 0.7rem; color: #444; margin-top: 5px; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #111; }
+::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
